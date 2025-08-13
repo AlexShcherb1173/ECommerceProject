@@ -11,7 +11,8 @@
 # Если цена понижается — спрашивать у пользователя подтверждение через input("...").
 
 from __future__ import annotations
-from typing import List, Dict, Any
+
+from typing import Any, Dict, List
 
 
 class Product:

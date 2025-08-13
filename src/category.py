@@ -10,7 +10,9 @@
 # Логика подсчёта product_count осталась, но теперь инкремент происходит и при добавлении через add_product().
 
 from __future__ import annotations
+
 from typing import List
+
 from src.product import Product
 
 

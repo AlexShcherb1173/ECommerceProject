@@ -10,7 +10,8 @@
 # Что здесь важно:
 # # type: ignore[arg-type] в тесте с неправильным типом нужен, чтобы mypy не ругался.
 # В test_category_initial_products_and_privacy мы прямо проверяем, что приватный атрибут реально приватный.
-# Сброс Category.product_count в начале теста test_add_product_increases_count нужен, чтобы тест не зависел от других тестов.
+# Сброс Category.product_count в начале теста test_add_product_increases_count нужен,
+# чтобы тест не зависел от других тестов.
 #
 # В conftest.py фикстура с autouse=True запускается автоматически перед каждым тестом,
 # сбрасывая product_count и category_count без явного вызова в тестах.
@@ -18,8 +19,10 @@
 
 
 import pytest
+
 from src.category import Category
 from src.product import Product
+
 
 @pytest.fixture(autouse=True)
 def reset_category_counters() -> None:
@@ -29,13 +32,14 @@ def reset_category_counters() -> None:
     Category.category_count = 0
     Category.product_count = 0
 
+
 def test_category_valid_initialization() -> None:
     p1 = Product("P1", "D1", 10.0, 1)
     p2 = Product("P2", "D2", 20.0, 2)
     c = Category("Cat", "Desc", [p1, p2])
     assert c.name == "Cat"
     assert c.description == "Desc"
-    #assert len(c.products) == 2
+    # assert len(c.products) == 2
     assert len(c.products.strip().split("\n")) == 2
     assert Category.category_count == 1
     assert Category.product_count == 2
@@ -55,13 +59,12 @@ def test_category_invalid_description_type(desc: str) -> None:
 
 def test_category_invalid_products_type() -> None:
     with pytest.raises(TypeError):
-        Category("Name", "Desc", "Not a list") # type: ignore[arg-type]
+        Category("Name", "Desc", "Not a list")  # type: ignore[arg-type]
 
 
 def test_category_products_not_product_objects() -> None:
     with pytest.raises(TypeError):
         Category("Name", "Desc", ["string", 123])  # type: ignore[list-item]
-
 
 
 def test_category_initial_products_and_privacy() -> None:
@@ -129,7 +132,7 @@ def test_product_count_increments_on_creation() -> None:
     assert Category.product_count == 2
 
 
-def test_products_getter_returns_correct_string():
+def test_products_getter_returns_correct_string() -> None:
     # Создаем тестовые продукты
     p1 = Product("Яблоко", "Красное яблоко", 80, 15)
     p2 = Product("Банан", "Желтый банан", 50, 20)
@@ -138,16 +141,13 @@ def test_products_getter_returns_correct_string():
     category = Category("Фрукты", "Свежие фрукты", [p1, p2])
 
     # Ожидаемая строка
-    expected = (
-        "Яблоко, 80.0 руб. Остаток: 15 шт.\n"
-        "Банан, 50.0 руб. Остаток: 20 шт.\n"
-    )
+    expected = "Яблоко, 80.0 руб. Остаток: 15 шт.\n" "Банан, 50.0 руб. Остаток: 20 шт.\n"
 
     # Проверяем геттер
     assert category.products == expected
 
 
-def test_products_getter_empty_list():
+def test_products_getter_empty_list() -> None:
     # Категория без продуктов
     category = Category("Пустая категория", "Нет товаров", [])
 
@@ -155,7 +155,7 @@ def test_products_getter_empty_list():
     assert category.products == ""
 
 
-def test_products_privacy():
+def test_products_privacy() -> None:
     # Проверка, что напрямую получить __products нельзя
     p1 = Product("Яблоко", "Красное яблоко", 80, 15)
     category = Category("Фрукты", "Свежие фрукты", [p1])

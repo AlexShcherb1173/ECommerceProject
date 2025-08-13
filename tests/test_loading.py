@@ -33,7 +33,7 @@ def test_load_categories_from_json(tmp_path: Path) -> None:
     categories = load_categories_from_json(str(json_path))
     assert len(categories) == 1
     assert categories[0].name == "Test Category"
-    #assert len(categories[0].products) == 64
+    # assert len(categories[0].products) == 64
     assert len(categories[0].products.strip().split("\n")) == 2
     assert Category.category_count == 1
     assert Category.product_count == 2
