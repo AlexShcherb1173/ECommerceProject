@@ -1,20 +1,3 @@
-# from __future__ import annotations
-# from src.loading import load_categories_from_json
-# from src.category import Category
-#
-#
-# if __name__ == "__main__":
-#     categories = load_categories_from_json("data/products.json")
-#
-#     for cat in categories:
-#         print(cat.name, cat.description)
-#         for prod in cat.products:
-#             print("  ", prod.name, "-", prod.price)
-#
-#     print("Всего категорий:", Category.category_count)
-#     print("Всего товаров:", Category.product_count)
-
-from typing import List
 from src.category import Category
 from src.product import Product
 
@@ -29,7 +12,7 @@ print(category.products)
 products = [
     Product("Яблоко", "Красное яблоко", 80, 15)
 ]
-
+#_______________________________________________________________________________________
 # Создаем новый товар через класс-метод
 new_data = {"name": "Яблоко", "description": "Свежее яблоко", "price": 85, "quantity": 10}
 Product.new_product(new_data, products)
@@ -39,3 +22,11 @@ banana_data = {"name": "Банан", "description": "Желтый банан", "
 Product.new_product(banana_data, products)
 
 print(products)
+#__________________________________________________________________________________________
+p = Product("Яблоко", "Красное яблоко", 80, 15)
+
+print(p.price)  # 80
+
+p.price = 0     # ❌ Цена не должна быть нулевая или отрицательная
+p.price = 90    # ✅ Цена повысилась
+p.price = 70    # ⏳ Спросит подтверждение: y/n
