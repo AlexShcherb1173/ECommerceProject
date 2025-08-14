@@ -9,6 +9,8 @@
 # Цена приватная (__price), а доступ к ней реализован через @property и @price.setter с проверками:
 # Запрет на ноль и отрицательные значения с выводом "Цена не должна быть нулевая или отрицательная".
 # Если цена понижается — спрашивать у пользователя подтверждение через input("...").
+# Product.__str__ — теперь возвращает "Название, X руб. Остаток: Y шт.".
+# Product.__add__ — реализовано сложение стоимости товаров на складе.
 
 from __future__ import annotations
 
@@ -41,6 +43,9 @@ class Product:
     def __repr__(self) -> str:
         return f"Product(name={self.name!r}, price={self.__price}, quantity={self.quantity})"
 
+    def __str__(self) -> str:
+        return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт."
+
     @property
     def price(self) -> float:
         """Геттер для приватного атрибута __price"""
@@ -59,24 +64,25 @@ class Product:
                 print("Изменение цены отменено")
                 return
 
+        # обновляем цену как при повышении, так и при снижении после подтверждения
         self.__price = float(new_price)
+
+    def __add__(self, other: Product) -> float:
+        if not isinstance(other, Product):
+            raise TypeError("Складывать можно только с другим Product")
+        return self.price * self.quantity + other.price * other.quantity
 
     @classmethod
     def new_product(cls, product_data: Dict[str, Any], products_list: List[Product]) -> Product:
-        """
-        Создает новый продукт из словаря.
-        Если продукт с таким именем уже есть — обновляет количество и цену.
-        """
         name = product_data["name"]
         description = product_data["description"]
         price = product_data["price"]
         quantity = product_data["quantity"]
 
         for existing_product in products_list:
-            if existing_product.name == name:
+            if existing_product.name == name:  # можно добавить .lower() для игнорирования регистра
                 existing_product.quantity += quantity
-                if price > existing_product.price:
-                    existing_product.price = price
+                existing_product.price = price  # сеттер сам спросит или обновит
                 return existing_product
 
         new_prod = cls(name, description, price, quantity)
