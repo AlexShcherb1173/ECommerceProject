@@ -32,8 +32,9 @@ README.md # Документация
 - `quantity: int` — количество на складе (не может быть отрицательным).
 
 **Пример:**
+
 ```python
-from main import Product
+from main_my import Product
 
 p = Product(
     name="Samsung Galaxy S23 Ultra",
@@ -43,26 +44,44 @@ p = Product(
 )
 print(p)
 Category
-Класс, представляющий категорию товаров.
+Класс, представляющий
+категорию
+товаров.
 
-Атрибуты экземпляра:
+Атрибуты
+экземпляра:
 
-name: str — название категории.
+name: str — название
+категории.
 
-description: str — описание категории.
+description: str — описание
+категории.
 
-products: list[Product] — список товаров (только объекты класса Product).
+products: list[Product] — список
+товаров(только
+объекты
+класса
+Product).
 
-Атрибуты класса:
+Атрибуты
+класса:
 
-category_count: int — количество созданных категорий.
+category_count: int — количество
+созданных
+категорий.
 
-product_count: int — общее количество товаров во всех категориях.  
+product_count: int — общее
+количество
+товаров
+во
+всех
+категориях.  
 ```  
 
  **Пример**:
+
 ```python
-from main import Product, Category
+from main_my import Product, Category
 
 p1 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
 p2 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
@@ -75,17 +94,31 @@ cat = Category(
 
 print(cat.name)  # "Смартфоны"
 print(Category.category_count)  # 1
-print(Category.product_count)   # 2
+print(Category.product_count)  # 2
 Функции
 load_categories_from_json(file_path: str) -> list[Category]
-Загружает список категорий с товарами из JSON-файла.
-При этом автоматически создаются объекты Product и Category.
+Загружает
+список
+категорий
+с
+товарами
+из
+JSON - файла.
+При
+этом
+автоматически
+создаются
+объекты
+Product
+и
+Category.
 ```  
 
  **Пример**:
+
 ```python
 
-from main import load_categories_from_json
+from main_my import load_categories_from_json
 
 categories = load_categories_from_json("data.json")
 

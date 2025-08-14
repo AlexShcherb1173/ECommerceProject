@@ -39,7 +39,6 @@ def test_category_valid_initialization() -> None:
     c = Category("Cat", "Desc", [p1, p2])
     assert c.name == "Cat"
     assert c.description == "Desc"
-    # assert len(c.products) == 2
     assert len(c.products.strip().split("\n")) == 2
     assert Category.category_count == 1
     assert Category.product_count == 2
@@ -162,3 +161,27 @@ def test_products_privacy() -> None:
 
     with pytest.raises(AttributeError):
         _ = category.__products  # напрямую доступ запрещен
+
+
+def test_category_init_and_str() -> None:
+    p1 = Product("A", "Desc", 100, 2)
+    p2 = Product("B", "Desc", 200, 3)
+    cat = Category("TestCat", "DescCat", [p1, p2])
+    assert "TestCat" in str(cat)
+    assert "5 шт" in str(cat)  # общее количество
+
+
+def test_category_add_product() -> None:
+    cat = Category("Cat", "Desc", [])
+    p = Product("A", "Desc", 100, 2)
+    cat.add_product(p)
+    assert p in cat.get_products()
+
+
+def test_category_products_property() -> None:
+    p1 = Product("Prod1", "Desc", 10, 1)
+    p2 = Product("Prod2", "Desc", 20, 2)
+    cat = Category("Cat", "Desc", [p1, p2])
+    products_str = cat.products
+    assert "Prod1, 10.0 руб. Остаток: 1 шт." in products_str
+    assert "Prod2, 20.0 руб. Остаток: 2 шт." in products_str
