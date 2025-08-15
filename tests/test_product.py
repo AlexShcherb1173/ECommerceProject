@@ -13,7 +13,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.product import Product
+from src.category import Category
+from src.product import LawnGrass, Product, Smartphone
 
 
 def test_product_valid_initialization() -> None:
@@ -235,3 +236,39 @@ def test_new_product_updates_existing(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("builtins.input", lambda _: "y")
     updated_lower = Product.new_product(data_lower_price, products)
     assert updated_lower.price == 150
+
+
+def test_add_same_type_products() -> None:
+    s1 = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    s2 = Smartphone("B", "Desc", 200, 3, 92.0, "M2", 256, "White")
+    assert s1 + s2 == 100 * 2 + 200 * 3
+
+
+def test_add_different_type_products_raises() -> None:
+    s = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    g = LawnGrass("Grass", "Desc", 50, 5, "RU", "7 дней", "Green")
+    with pytest.raises(TypeError):
+        _ = s + g
+
+
+# def test_add_non_product_to_category_raises() -> None:
+#     c = Category("Test", "Desc", [])
+#     with pytest.raises(TypeError):
+#         c.add_product("not a product")
+def test_add_non_product_raises_type_error() -> None:
+    p1 = Product("Prod1", "Desc1", 10.0, 5)
+    category = Category("Cat1", "DescCat", [p1])
+
+    with pytest.raises(TypeError):
+        # Передаем не объект Product, а строку
+        category.add_product("not a product")  # type: ignore[arg-type]
+
+
+def test_add_product_or_subclass_ok() -> None:
+    c = Category("Test", "Desc", [])
+    s = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    g = LawnGrass("Grass", "Desc", 50, 5, "RU", "7 дней", "Green")
+    c.add_product(s)
+    c.add_product(g)
+    assert s in c.get_products()
+    assert g in c.get_products()
