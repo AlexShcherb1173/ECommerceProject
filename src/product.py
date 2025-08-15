@@ -11,6 +11,8 @@
 # Если цена понижается — спрашивать у пользователя подтверждение через input("...").
 # Product.__str__ — теперь возвращает "Название, X руб. Остаток: Y шт.".
 # Product.__add__ — реализовано сложение стоимости товаров на складе.
+# Создадим два новых класса Smartphone и LawnGrass, наследников от Product.
+# В __add__ добавим проверку type(self) is type(other) — это гарантирует, что смартфон не сложится с травой.
 
 from __future__ import annotations
 
@@ -88,3 +90,63 @@ class Product:
         new_prod = cls(name, description, price, quantity)
         products_list.append(new_prod)
         return new_prod
+
+class Smartphone(Product):
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+        efficiency: float,
+        model: str,
+        memory: int,
+        color: str
+    ):
+        super().__init__(name, description, price, quantity)
+        if not isinstance(efficiency, (int, float)):
+            raise TypeError("efficiency должен быть числом")
+        if not isinstance(model, str):
+            raise TypeError("model должен быть строкой")
+        if not isinstance(memory, int):
+            raise TypeError("memory должен быть целым числом")
+        if not isinstance(color, str):
+            raise TypeError("color должен быть строкой")
+
+        self.efficiency = float(efficiency)
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+    def __add__(self, other: Product) -> float:
+        if type(self) is not type(other):
+            raise TypeError("Складывать можно только товары одного класса")
+        return super().__add__(other)
+
+class LawnGrass(Product):
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+        country: str,
+        germination_period: str,
+        color: str
+    ):
+        super().__init__(name, description, price, quantity)
+        if not isinstance(country, str):
+            raise TypeError("country должен быть строкой")
+        if not isinstance(germination_period, str):
+            raise TypeError("germination_period должен быть строкой")
+        if not isinstance(color, str):
+            raise TypeError("color должен быть строкой")
+
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
+
+    def __add__(self, other: Product) -> float:
+        if type(self) is not type(other):
+            raise TypeError("Складывать можно только товары одного класса")
+        return super().__add__(other)
