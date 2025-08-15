@@ -24,6 +24,7 @@ class Category:
 
     category_count: int = 0
     product_count: int = 0  # общий счетчик всех продуктов всех категорий
+    __products: List[Product]  # <— добавили явную аннотацию
 
     def __init__(self, name: str, description: str, products: List[Product]):
         # Проверка типов
@@ -38,8 +39,8 @@ class Category:
 
         self.name: str = name
         self.description: str = description
-        self.__products: List[Product] = products  # приватный список товаров
-
+        # self.__products: List[Product] = products  # приватный список товаров
+        self.__products = products.copy()  # приватное хранение
         # обновляем счетчики
         Category.category_count += 1
         Category.product_count += len(products)
@@ -53,11 +54,8 @@ class Category:
         if not isinstance(product, Product) or not issubclass(type(product), Product):
             raise TypeError("Можно добавить только объект класса Product или его наследников")
 
-        self._Category__products.append(product)
-        Category.product_count += 1
-
-        self.__products.append(product)
-        Category.product_count += 1
+        self.__products.append(product)  # одно добавление
+        Category.product_count += 1  # один инкремент
 
     def get_products(self) -> List[Product]:
         """Возвращает копию списка товаров (чтение без возможности изменить напрямую)."""

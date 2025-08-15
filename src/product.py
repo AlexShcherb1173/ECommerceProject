@@ -91,6 +91,7 @@ class Product:
         products_list.append(new_prod)
         return new_prod
 
+
 class Smartphone(Product):
     def __init__(
         self,
@@ -101,7 +102,7 @@ class Smartphone(Product):
         efficiency: float,
         model: str,
         memory: int,
-        color: str
+        color: str,
     ):
         super().__init__(name, description, price, quantity)
         if not isinstance(efficiency, (int, float)):
@@ -123,6 +124,7 @@ class Smartphone(Product):
             raise TypeError("Складывать можно только товары одного класса")
         return super().__add__(other)
 
+
 class LawnGrass(Product):
     def __init__(
         self,
@@ -132,7 +134,7 @@ class LawnGrass(Product):
         quantity: int,
         country: str,
         germination_period: str,
-        color: str
+        color: str,
     ):
         super().__init__(name, description, price, quantity)
         if not isinstance(country, str):
