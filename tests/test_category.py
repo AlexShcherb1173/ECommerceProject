@@ -17,6 +17,15 @@
 # сбрасывая product_count и category_count без явного вызова в тестах.
 # Теперь в тестах можно не сбрасывать счётчики вручную — они всегда начинаются с 0.
 
+# capsys проверяет, что CreationLoggerMixin реально выводит сообщение при создании.
+# Проверяется валидация цены и количества.
+# Тестируется правильная работа Product.new_product (и обновление, и добавление).
+# Наследники Smartphone и LawnGrass тестируются на наличие всех полей.
+# Category тестируется на корректные счётчики и защиту от неправильных типов.
+# Order тестируется на правильный расчёт и защиту от некорректных данных.
+
+
+from typing import Any
 
 import pytest
 
@@ -185,3 +194,48 @@ def test_category_products_property() -> None:
     products_str = cat.products
     assert "Prod1, 10.0 руб. Остаток: 1 шт." in products_str
     assert "Prod2, 20.0 руб. Остаток: 2 шт." in products_str
+
+
+def test_order_valid_creation_and_stock_update() -> None:
+    p = Product("Prod1", "Desc1", 10.0, 5)
+    order = Category.Order(p, 3)
+
+    # заказ создан
+    assert isinstance(order, Category.Order)
+    assert order.total_quantity() == 3
+    assert order.total_price() == 30.0
+
+    # остаток на складе уменьшился
+    assert p.quantity == 2
+
+
+def test_order_invalid_product_type() -> None:
+    with pytest.raises(TypeError):
+        Category.Order("not a product", 1)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("bad_qty", [0, -1, "3", None])
+def test_order_invalid_quantity_type_or_value(bad_qty: Any) -> None:
+    p = Product("Prod1", "Desc1", 10.0, 5)
+    with pytest.raises(ValueError):
+        Category.Order(p, bad_qty)  # type: ignore[arg-type]
+
+
+def test_order_quantity_exceeds_stock() -> None:
+    p = Product("Prod1", "Desc1", 10.0, 2)
+    with pytest.raises(ValueError, match="Недостаточно товара"):
+        Category.Order(p, 5)
+
+
+def test_order_str_and_repr() -> None:
+    p = Product("Prod1", "Desc1", 10.0, 5)
+    order = Category.Order(p, 2)
+
+    s = str(order)
+    r = repr(order)
+
+    assert "Заказ: Prod1" in s
+    assert "сумма: 20.0 руб." in s
+    assert "Order(product='Prod1'" in r
+    assert "quantity=2" in r
+    assert "total_price=20.0" in r

@@ -14,12 +14,25 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import List
 
 from src.product import Product
 
 
-class Category:
+class BaseItem(ABC):
+    @abstractmethod
+    def total_quantity(self) -> int:
+        """Возвращает общее количество товаров"""
+        pass
+
+    @abstractmethod
+    def total_price(self) -> float:
+        """Возвращает общую стоимость товаров"""
+        pass
+
+
+class Category(BaseItem):
     """Класс, представляющий категорию товаров."""
 
     category_count: int = 0
@@ -27,35 +40,26 @@ class Category:
     __products: List[Product]  # <— добавили явную аннотацию
 
     def __init__(self, name: str, description: str, products: List[Product]):
-        # Проверка типов
         if not isinstance(name, str):
             raise TypeError("name должен быть строкой")
         if not isinstance(description, str):
             raise TypeError("description должен быть строкой")
-        if not isinstance(products, list):
-            raise TypeError("products должен быть списком")
-        if not all(isinstance(p, Product) for p in products):
-            raise TypeError("в products должны быть только объекты класса Product")
+        if not isinstance(products, list) or not all(isinstance(p, Product) for p in products):
+            raise TypeError("products должны быть Product или их наследниками")
 
         self.name: str = name
         self.description: str = description
-        # self.__products: List[Product] = products  # приватный список товаров
-        self.__products = products.copy()  # приватное хранение
-        # обновляем счетчики
+        self.__products: List[Product] = products  # приватный список товаров
+
         Category.category_count += 1
         Category.product_count += len(products)
 
-    # def add_product(self, product: Product) -> None:
-    #     """Добавляет товар в категорию и увеличивает счетчик продуктов."""
-    #     if not isinstance(product, Product):
-    #         raise TypeError("Можно добавить только объект класса Product")
     def add_product(self, product: Product) -> None:
         """Добавляет товар в категорию и увеличивает счетчик продуктов."""
-        if not isinstance(product, Product) or not issubclass(type(product), Product):
-            raise TypeError("Можно добавить только объект класса Product или его наследников")
-
-        self.__products.append(product)  # одно добавление
-        Category.product_count += 1  # один инкремент
+        if not isinstance(product, Product):
+            raise TypeError("Можно добавить только Product или наследников")
+        self.__products.append(product)
+        Category.product_count += 1
 
     def get_products(self) -> List[Product]:
         """Возвращает копию списка товаров (чтение без возможности изменить напрямую)."""
@@ -66,10 +70,43 @@ class Category:
         """Возвращает строку со списком всех продуктов, используя __str__ каждого продукта."""
         return "\n".join(str(p) for p in self.__products) + ("\n" if self.__products else "")
 
+    def total_quantity(self) -> int:
+        return sum(p.quantity for p in self.__products)
+
+    def total_price(self) -> float:
+        return sum(p.price * p.quantity for p in self.__products)
+
     def __repr__(self) -> str:
         return f"Category(name={self.name!r}, products={len(self.__products)})"
 
     def __str__(self) -> str:
         """Возвращает строку: Название категории, количество продуктов на складе: X шт."""
-        total_quantity = sum(p.quantity for p in self.__products)
-        return f"{self.name}, количество продуктов на складе: {total_quantity} шт."
+        return f"{self.name}, количество продуктов на складе: {self.total_quantity()} шт."
+
+    class Order(BaseItem):
+        def __init__(self, product: Product, quantity: int):
+            if not isinstance(product, Product):
+                raise TypeError("В заказе может быть указан только объект Product или его наследник")
+            if not isinstance(quantity, int) or quantity <= 0:
+                raise ValueError("Количество товара в заказе должно быть положительным целым числом")
+            if quantity > product.quantity:
+                raise ValueError("Недостаточно товара на складе для заказа")
+
+            self.product = product
+            self.quantity = quantity
+            self._total_price = product.price * quantity
+
+            # уменьшаем количество товара на складе
+            self.product.quantity -= quantity
+
+        def total_quantity(self) -> int:
+            return self.quantity
+
+        def total_price(self) -> float:
+            return self._total_price
+
+        def __repr__(self) -> str:
+            return f"Order(product={self.product.name!r}, quantity={self.quantity}, total_price={self._total_price})"
+
+        def __str__(self) -> str:
+            return f"Заказ: {self.product.name}, количество: {self.quantity}, сумма: {self._total_price} руб."
