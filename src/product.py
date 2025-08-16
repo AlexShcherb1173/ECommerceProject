@@ -10,13 +10,32 @@
 # Запрет на ноль и отрицательные значения с выводом "Цена не должна быть нулевая или отрицательная".
 # Если цена понижается — спрашивать у пользователя подтверждение через input("...").
 # Product.__str__ — теперь возвращает "Название, X руб. Остаток: Y шт.".
-# Product.__add__ — реализовано сложение стоимости товаров на складе.
-# Создадим два новых класса Smartphone и LawnGrass, наследников от Product.
-# В __add__ добавим проверку type(self) is type(other) — это гарантирует, что смартфон не сложится с травой.
+
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import Any, Dict, List
+
+
+class LoggerMixin:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        print(f"[LOG] Создан объект {type(self).__name__} с параметрами: {args}")
+
+
+class BaseProduct(ABC):
+    @abstractmethod
+    def __init__(self, name: str, description: str, price: float, quantity: int):
+        self.name = name
+        self.description = description
+        self.price = price
+        self.quantity = quantity
+
+    @abstractmethod
+    def __add__(self, other: BaseProduct) -> float:
+        """Возвращает сумму чего-либо с другим объектом BaseItem."""
+        pass
 
 
 class Product:
@@ -68,6 +87,12 @@ class Product:
 
         # обновляем цену как при повышении, так и при снижении после подтверждения
         self.__price = float(new_price)
+
+    # def __repr__(self) -> str:
+    #     return f"{type(self).__name__}(name={self.name!r}, price={self.__price}, quantity={self.quantity})"
+    #
+    # def __str__(self) -> str:
+    #     return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other: Product) -> float:
         if not isinstance(other, Product):
