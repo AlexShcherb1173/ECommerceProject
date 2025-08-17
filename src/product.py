@@ -38,11 +38,10 @@ class BaseProduct(ABC):
         pass
 
 
-class Product:
+class Product(LoggerMixin, BaseProduct):
     """Класс, представляющий товар."""
 
     def __init__(self, name: str, description: str, price: float, quantity: int):
-        # Проверка типов
         if not isinstance(name, str):
             raise TypeError("name должен быть строкой")
         if not isinstance(description, str):
@@ -60,6 +59,30 @@ class Product:
         self.description: str = description
         self.__price: float = float(price)  # приватный атрибут
         self.quantity: int = quantity
+        super().__init__(name, description, price, quantity)  # для LoggerMixin
+
+    # class Product:
+    #     """Класс, представляющий товар."""
+    #
+    #     def __init__(self, name: str, description: str, price: float, quantity: int):
+    #         # Проверка типов
+    #         if not isinstance(name, str):
+    #             raise TypeError("name должен быть строкой")
+    #         if not isinstance(description, str):
+    #             raise TypeError("description должен быть строкой")
+    #         if not isinstance(price, (int, float)):
+    #             raise TypeError("price должен быть числом")
+    #         if price <= 0:
+    #             raise ValueError("price не может быть нулевым или отрицательным")
+    #         if not isinstance(quantity, int):
+    #             raise TypeError("quantity должен быть целым числом")
+    #         if quantity < 0:
+    #             raise ValueError("quantity не может быть отрицательным")
+    #
+    #         self.name: str = name
+    #         self.description: str = description
+    #         self.__price: float = float(price)  # приватный атрибут
+    #         self.quantity: int = quantity
 
     def __repr__(self) -> str:
         return f"Product(name={self.name!r}, price={self.__price}, quantity={self.quantity})"
@@ -94,9 +117,9 @@ class Product:
     # def __str__(self) -> str:
     #     return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт."
 
-    def __add__(self, other: Product) -> float:
-        if not isinstance(other, Product):
-            raise TypeError("Складывать можно только с другим Product")
+    def __add__(self, other: BaseProduct) -> float:
+        if not isinstance(other, BaseProduct):
+            raise TypeError("Можно складывать только с другим продуктом")
         return self.price * self.quantity + other.price * other.quantity
 
     @classmethod
@@ -144,7 +167,7 @@ class Smartphone(Product):
         self.memory = memory
         self.color = color
 
-    def __add__(self, other: Product) -> float:
+    def __add__(self, other: BaseProduct) -> float:
         if type(self) is not type(other):
             raise TypeError("Складывать можно только товары одного класса")
         return super().__add__(other)
@@ -173,7 +196,7 @@ class LawnGrass(Product):
         self.germination_period = germination_period
         self.color = color
 
-    def __add__(self, other: Product) -> float:
+    def __add__(self, other: BaseProduct) -> float:
         if type(self) is not type(other):
             raise TypeError("Складывать можно только товары одного класса")
         return super().__add__(other)
