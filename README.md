@@ -34,7 +34,7 @@ README.md # Документация
 **Пример:**
 
 ```python
-from main import Product
+from main_my import Product
 
 p = Product(
     name="Samsung Galaxy S23 Ultra",
@@ -81,7 +81,7 @@ product_count: int — общее
  **Пример**:
 
 ```python
-from main import Product, Category
+from main_my import Product, Category
 
 p1 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
 p2 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
@@ -118,7 +118,7 @@ Category.
 
 ```python
 
-from main import load_categories_from_json
+from main_my import load_categories_from_json
 
 categories = load_categories_from_json("data.json")
 

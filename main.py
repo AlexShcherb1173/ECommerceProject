@@ -1,32 +1,23 @@
+from src.product import Product, Smartphone, LawnGrass
 from src.category import Category
-from src.product import Product
 
 
-p1 = Product("Яблоко", "Красное яблоко", 80, 15)
-p2 = Product("Банан", "Желтый банан", 50, 20)
+if __name__ == '__main__':
+    try:
+        product_invalid = Product("Бракованный товар", "Неверное количество", 1000.0, 0)
+    except ValueError as e:
+        print(
+            "Возникла ошибка ValueError прерывающая работу программы при попытке добавить продукт с нулевым количеством")
+    else:
+        print("Не возникла ошибка ValueError при попытке добавить продукт с нулевым количеством")
 
-category = Category("Фрукты", "Свежие фрукты", [p1, p2])
+    product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
+    product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
+    product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
 
-print(category.products)
+    category1 = Category("Смартфоны", "Категория смартфонов", [product1, product2, product3])
 
-products = [
-    Product("Яблоко", "Красное яблоко", 80, 15)
-]
-#_______________________________________________________________________________________
-# Создаем новый товар через класс-метод
-new_data = {"name": "Яблоко", "description": "Свежее яблоко", "price": 85, "quantity": 10}
-Product.new_product(new_data, products)
+    print(category1.middle_price())
 
-# Создаем новый товар, которого нет
-banana_data = {"name": "Банан", "description": "Желтый банан", "price": 50, "quantity": 20}
-Product.new_product(banana_data, products)
-
-print(products)
-#__________________________________________________________________________________________
-p = Product("Яблоко", "Красное яблоко", 80, 15)
-
-print(p.price)  # 80
-
-p.price = 0     # ❌ Цена не должна быть нулевая или отрицательная
-p.price = 90    # ✅ Цена повысилась
-p.price = 70    # ⏳ Спросит подтверждение: y/n
+    category_empty = Category("Пустая категория", "Категория без продуктов", [])
+    print(category_empty.middle_price())

@@ -38,6 +38,12 @@ class BaseProduct(ABC):
         pass
 
 
+class ZeroQuantityError(Exception):
+    """Исключение при попытке добавить товар с нулевым количеством."""
+
+    def __init__(self, message: str = "Товар с нулевым количеством не может быть добавлен"):
+        super().__init__(message)
+
 class Product(LoggerMixin, BaseProduct):
     """Класс, представляющий товар."""
 
@@ -54,6 +60,10 @@ class Product(LoggerMixin, BaseProduct):
             raise TypeError("quantity должен быть целым числом")
         if quantity < 0:
             raise ValueError("quantity не может быть отрицательным")
+        if quantity == 0:
+            raise ZeroQuantityError("Нельзя создать продукт с нулевым количеством")
+        # if quantity == 0:
+        #     raise ValueError("Товар с нулевым количеством не может быть добавлен")
 
         self.name: str = name
         self.description: str = description
@@ -61,28 +71,6 @@ class Product(LoggerMixin, BaseProduct):
         self.quantity: int = quantity
         super().__init__(name, description, price, quantity)  # для LoggerMixin
 
-    # class Product:
-    #     """Класс, представляющий товар."""
-    #
-    #     def __init__(self, name: str, description: str, price: float, quantity: int):
-    #         # Проверка типов
-    #         if not isinstance(name, str):
-    #             raise TypeError("name должен быть строкой")
-    #         if not isinstance(description, str):
-    #             raise TypeError("description должен быть строкой")
-    #         if not isinstance(price, (int, float)):
-    #             raise TypeError("price должен быть числом")
-    #         if price <= 0:
-    #             raise ValueError("price не может быть нулевым или отрицательным")
-    #         if not isinstance(quantity, int):
-    #             raise TypeError("quantity должен быть целым числом")
-    #         if quantity < 0:
-    #             raise ValueError("quantity не может быть отрицательным")
-    #
-    #         self.name: str = name
-    #         self.description: str = description
-    #         self.__price: float = float(price)  # приватный атрибут
-    #         self.quantity: int = quantity
 
     def __repr__(self) -> str:
         return f"Product(name={self.name!r}, price={self.__price}, quantity={self.quantity})"
@@ -111,11 +99,6 @@ class Product(LoggerMixin, BaseProduct):
         # обновляем цену как при повышении, так и при снижении после подтверждения
         self.__price = float(new_price)
 
-    # def __repr__(self) -> str:
-    #     return f"{type(self).__name__}(name={self.name!r}, price={self.__price}, quantity={self.quantity})"
-    #
-    # def __str__(self) -> str:
-    #     return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other: BaseProduct) -> float:
         if not isinstance(other, BaseProduct):
