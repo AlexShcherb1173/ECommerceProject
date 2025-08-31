@@ -359,23 +359,24 @@ def test_lawngrass_add_different_type_raises() -> None:
     with pytest.raises(TypeError):
         _ = g + p
 
-def test_product_with_zero_quantity_raises():
+
+def test_product_with_zero_quantity_raises() -> None:
     with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
         Product("Test", "Desc", 100, 0)
 
 
-def test_product_with_negative_quantity_raises():
+def test_product_with_negative_quantity_raises() -> None:
     with pytest.raises(ValueError, match="quantity не может быть отрицательным"):
         Product("Test", "Desc", 100, -5)
 
 
-def test_product_with_positive_quantity_ok():
+def test_product_with_positive_quantity_ok() -> None:
     product = Product("Test", "Desc", 100, 5)
     assert product.quantity == 5
     assert product.price == 100
     assert str(product) == "Test, 100.0 руб. Остаток: 5 шт."
 
 
-def test_product_zero_quantity_raises():
+def test_product_zero_quantity_raises() -> None:
     with pytest.raises(ZeroQuantityError, match="Нельзя создать продукт с нулевым количеством"):
         Product("Test", "Desc", 100, 0)

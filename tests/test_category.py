@@ -256,7 +256,7 @@ def test_order_str_and_repr() -> None:
     assert "total_price=20.0" in r
 
 
-def test_average_price_normal_case():
+def test_average_price_normal_case() -> None:
     p1 = Product("P1", "Desc", 100, 2)
     p2 = Product("P2", "Desc", 200, 3)
     category = Category("TestCat", "Desc", [p1, p2])
@@ -265,7 +265,7 @@ def test_average_price_normal_case():
     assert avg == (100 + 200) / 2  # 150.0
 
 
-def test_average_price_one_product():
+def test_average_price_one_product() -> None:
     p1 = Product("P1", "Desc", 300, 5)
     category = Category("TestCat", "Desc", [p1])
 
@@ -273,12 +273,12 @@ def test_average_price_one_product():
     assert avg == 300
 
 
-def test_average_price_empty_category_returns_zero():
+def test_average_price_empty_category_returns_zero() -> None:
     category = Category("EmptyCat", "Desc", [])
     assert category.average_price() == 0
 
 
-def test_category_add_product_zero_quantity(capsys):
+def test_category_add_product_zero_quantity(capsys: "pytest.CaptureFixture[str]") -> None:
     cat = Category("Phones", "Smartphones", [])
     p = Product("iPhone", "Desc", 1000, 0)  # вызовет ZeroQuantityError в __init__
 
@@ -290,7 +290,7 @@ def test_category_add_product_zero_quantity(capsys):
     assert "Обработка добавления товара завершена" in captured.out
 
 
-def test_category_add_product_success(capsys):
+def test_category_add_product_success(capsys: "pytest.CaptureFixture[str]") -> None:
     cat = Category("Phones", "Smartphones", [])
     p = Product("iPhone", "Desc", 1000, 1)
 
@@ -301,7 +301,7 @@ def test_category_add_product_success(capsys):
     assert "Обработка добавления товара завершена" in captured.out
 
 
-def test_order_with_zero_quantity_raises(capsys):
+def test_order_with_zero_quantity_raises(capsys: "pytest.CaptureFixture[str]") -> None:
     p = Product("Samsung", "Phone", 500, 10)
     with pytest.raises(ZeroQuantityError, match="Нельзя заказать нулевое количество товара"):
         Category.Order(p, 0)
@@ -310,7 +310,7 @@ def test_order_with_zero_quantity_raises(capsys):
     assert "Обработка заказа завершена" in captured.out
 
 
-def test_order_success(capsys):
+def test_order_success(capsys: "pytest.CaptureFixture[str]") -> None:
     p = Product("Xiaomi", "Phone", 300, 5)
     order = Category.Order(p, 2)
 

@@ -44,6 +44,7 @@ class ZeroQuantityError(Exception):
     def __init__(self, message: str = "Товар с нулевым количеством не может быть добавлен"):
         super().__init__(message)
 
+
 class Product(LoggerMixin, BaseProduct):
     """Класс, представляющий товар."""
 
@@ -71,7 +72,6 @@ class Product(LoggerMixin, BaseProduct):
         self.quantity: int = quantity
         super().__init__(name, description, price, quantity)  # для LoggerMixin
 
-
     def __repr__(self) -> str:
         return f"Product(name={self.name!r}, price={self.__price}, quantity={self.quantity})"
 
@@ -98,7 +98,6 @@ class Product(LoggerMixin, BaseProduct):
 
         # обновляем цену как при повышении, так и при снижении после подтверждения
         self.__price = float(new_price)
-
 
     def __add__(self, other: BaseProduct) -> float:
         if not isinstance(other, BaseProduct):

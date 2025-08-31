@@ -69,7 +69,6 @@ class Category(BaseItem):
         except ZeroDivisionError:
             return 0
 
-
     @property
     def products(self) -> str:
         """Возвращает строку со списком всех продуктов, используя __str__ каждого продукта."""
