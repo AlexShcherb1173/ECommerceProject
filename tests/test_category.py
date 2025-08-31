@@ -7,6 +7,15 @@
 # Что метод get_products() возвращает копию списка.
 # автоматический подсчёт категорий (category_count)
 # автоматический подсчёт продуктов (product_count)
+# Тесты для нового поведения Category с приватным списком товаров и методом add_product().
+# Тесты будут проверять:
+# Что при инициализации категории товары сохраняются в приватный атрибут.
+# Что к приватному списку нельзя обратиться напрямую.
+# Что метод add_product() корректно добавляет Product и увеличивает счётчик product_count.
+# Что при попытке добавить не-Product выбрасывается TypeError.
+# Что метод get_products() возвращает копию списка.
+# автоматический подсчёт категорий (category_count)
+# автоматический подсчёт продуктов (product_count)
 # Что здесь важно:
 # # type: ignore[arg-type] в тесте с неправильным типом нужен, чтобы mypy не ругался.
 # В test_category_initial_products_and_privacy мы прямо проверяем, что приватный атрибут реально приватный.
@@ -24,13 +33,19 @@
 # Category тестируется на корректные счётчики и защиту от неправильных типов.
 # Order тестируется на правильный расчёт и защиту от некорректных данных.
 
+# Category.add_product — если добавить товар с quantity=0, то ошибка ловится, выводится сообщение,
+# и всегда выводится "Обработка добавления товара завершена".
+# Category.add_product успешный сценарий — товар добавляется и выводятся оба сообщения (успешно и завершена).
+# Order — при заказе с quantity=0 выбрасывается исключение и выводится сообщение о завершении.
+# Order успешный сценарий — заказ создаётся, количество товара уменьшается, выводятся сообщения.
+
 
 from typing import Any
 
 import pytest
 
 from src.category import Category
-from src.product import Product
+from src.product import Product, ZeroQuantityError
 
 
 @pytest.fixture(autouse=True)
@@ -214,7 +229,7 @@ def test_order_invalid_product_type() -> None:
         Category.Order("not a product", 1)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("bad_qty", [0, -1, "3", None])
+@pytest.mark.parametrize("bad_qty", [-1, "3", None])
 def test_order_invalid_quantity_type_or_value(bad_qty: Any) -> None:
     p = Product("Prod1", "Desc1", 10.0, 5)
     with pytest.raises(ValueError):
@@ -239,3 +254,70 @@ def test_order_str_and_repr() -> None:
     assert "Order(product='Prod1'" in r
     assert "quantity=2" in r
     assert "total_price=20.0" in r
+
+
+def test_average_price_normal_case() -> None:
+    p1 = Product("P1", "Desc", 100, 2)
+    p2 = Product("P2", "Desc", 200, 3)
+    category = Category("TestCat", "Desc", [p1, p2])
+
+    avg = category.average_price()
+    assert avg == (100 + 200) / 2  # 150.0
+
+
+def test_average_price_one_product() -> None:
+    p1 = Product("P1", "Desc", 300, 5)
+    category = Category("TestCat", "Desc", [p1])
+
+    avg = category.average_price()
+    assert avg == 300
+
+
+def test_average_price_empty_category_returns_zero() -> None:
+    category = Category("EmptyCat", "Desc", [])
+    assert category.average_price() == 0
+
+
+def test_category_add_product_zero_quantity(capsys: "pytest.CaptureFixture[str]") -> None:
+    cat = Category("Phones", "Smartphones", [])
+    p = Product("iPhone", "Desc", 1000, 0)  # вызовет ZeroQuantityError в __init__
+
+    # здесь проверяем именно add_product
+    with pytest.raises(ZeroQuantityError):
+        cat.add_product(p)
+
+    captured = capsys.readouterr()
+    assert "Обработка добавления товара завершена" in captured.out
+
+
+def test_category_add_product_success(capsys: "pytest.CaptureFixture[str]") -> None:
+    cat = Category("Phones", "Smartphones", [])
+    p = Product("iPhone", "Desc", 1000, 1)
+
+    cat.add_product(p)
+
+    captured = capsys.readouterr()
+    assert "Товар 'iPhone' добавлен" in captured.out
+    assert "Обработка добавления товара завершена" in captured.out
+
+
+def test_order_with_zero_quantity_raises(capsys: "pytest.CaptureFixture[str]") -> None:
+    p = Product("Samsung", "Phone", 500, 10)
+    with pytest.raises(ZeroQuantityError, match="Нельзя заказать нулевое количество товара"):
+        Category.Order(p, 0)
+
+    captured = capsys.readouterr()
+    assert "Обработка заказа завершена" in captured.out
+
+
+def test_order_success(capsys: "pytest.CaptureFixture[str]") -> None:
+    p = Product("Xiaomi", "Phone", 300, 5)
+    order = Category.Order(p, 2)
+
+    assert order.total_quantity() == 2
+    assert order.total_price() == 600
+    assert p.quantity == 3  # склад уменьшился
+
+    captured = capsys.readouterr()
+    assert "Заказ на товар 'Xiaomi' успешно создан" in captured.out
+    assert "Обработка заказа завершена" in captured.out

@@ -15,6 +15,7 @@
 # поведение Product.new_product;
 # работу Category (счётчики, добавление товаров, защита приватности списка);
 # работу Order (валидация и расчёт стоимости).
+# Product — при создании товара с quantity=0 выбрасывается ZeroQuantityError.
 
 
 from typing import Any, List, Type
@@ -23,7 +24,7 @@ from unittest.mock import patch
 import pytest
 
 from src.category import Category
-from src.product import LawnGrass, Product, Smartphone
+from src.product import LawnGrass, Product, Smartphone, ZeroQuantityError
 
 
 def test_product_valid_initialization() -> None:
@@ -357,3 +358,25 @@ def test_lawngrass_add_different_type_raises() -> None:
     p = Product("Prod", "Desc", 20, 2)
     with pytest.raises(TypeError):
         _ = g + p
+
+
+def test_product_with_zero_quantity_raises() -> None:
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product("Test", "Desc", 100, 0)
+
+
+def test_product_with_negative_quantity_raises() -> None:
+    with pytest.raises(ValueError, match="quantity не может быть отрицательным"):
+        Product("Test", "Desc", 100, -5)
+
+
+def test_product_with_positive_quantity_ok() -> None:
+    product = Product("Test", "Desc", 100, 5)
+    assert product.quantity == 5
+    assert product.price == 100
+    assert str(product) == "Test, 100.0 руб. Остаток: 5 шт."
+
+
+def test_product_zero_quantity_raises() -> None:
+    with pytest.raises(ZeroQuantityError, match="Нельзя создать продукт с нулевым количеством"):
+        Product("Test", "Desc", 100, 0)

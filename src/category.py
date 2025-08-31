@@ -1,23 +1,9 @@
-# Перепишем твой класс Category так, чтобы:
-# список товаров стал приватным (self.__products);
-# доступ к нему напрямую снаружи был невозможен;
-# был метод add_product() для добавления объекта Product;
-# при добавлении продукта увеличивался счётчик product_count.
-# Что изменилось:
-# self.__products — теперь приватный атрибут.
-# Добавлен метод add_product() — безопасно добавляет продукт.
-# Добавлен метод get_products() — позволяет получить копию списка товаров, но не менять его напрямую.
-# Логика подсчёта product_count осталась, но теперь инкремент происходит и при добавлении через add_product().
-# Category.products — вместо ручной сборки строки просто использует str(product) для каждого товара.
-# Category.__str__ — считает общее количество всех единиц товара (quantity) и выводит "Название категории,
-# количество продуктов: X шт.".
-
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.product import Product
+from src.product import Product, ZeroQuantityError
 
 
 class BaseItem(ABC):
@@ -58,12 +44,30 @@ class Category(BaseItem):
         """Добавляет товар в категорию и увеличивает счетчик продуктов."""
         if not isinstance(product, Product):
             raise TypeError("Можно добавить только Product или наследников")
-        self.__products.append(product)
-        Category.product_count += 1
+        try:
+            if product.quantity == 0:
+                raise ZeroQuantityError("Нельзя добавить товар с нулевым количеством")
+            self.__products.append(product)
+        except ZeroQuantityError as e:
+            print(f"[ERROR] {e}")
+        else:
+            print(f"[INFO] Товар '{product.name}' добавлен в категорию '{self.name}'")
+            Category.product_count += 1
+        finally:
+            print("[INFO] Обработка добавления товара завершена")
 
     def get_products(self) -> List[Product]:
         """Возвращает копию списка товаров (чтение без возможности изменить напрямую)."""
         return list(self.__products)
+
+    def average_price(self) -> float:
+        """Возвращает среднюю цену товаров в категории. Если товаров нет — возвращает 0 (обработка деления на ноль)."""
+        try:
+            total_price = sum(p.price for p in self.__products)
+            count = len(self.__products)
+            return total_price / count
+        except ZeroDivisionError:
+            return 0
 
     @property
     def products(self) -> str:
@@ -87,17 +91,33 @@ class Category(BaseItem):
         def __init__(self, product: Product, quantity: int):
             if not isinstance(product, Product):
                 raise TypeError("В заказе может быть указан только объект Product или его наследник")
-            if not isinstance(quantity, int) or quantity <= 0:
-                raise ValueError("Количество товара в заказе должно быть положительным целым числом")
-            if quantity > product.quantity:
-                raise ValueError("Недостаточно товара на складе для заказа")
+            if not isinstance(quantity, int) or quantity < 0:
+                raise ValueError("Количество товара в заказе должно быть целым числом")
+            try:
+                if quantity == 0:
+                    raise ZeroQuantityError("Нельзя заказать нулевое количество товара")
+                if quantity > product.quantity:
+                    raise ValueError("Недостаточно товара на складе для заказа")
 
-            self.product = product
-            self.quantity = quantity
-            self._total_price = product.price * quantity
+                self.product = product
+                self.quantity = quantity
+                self._total_price = product.price * quantity
+                self.product.quantity -= quantity
 
-            # уменьшаем количество товара на складе
-            self.product.quantity -= quantity
+            except ZeroQuantityError as e:
+                print(f"[ERROR] {e}")
+                raise
+            else:
+                print(f"[INFO] Заказ на товар '{product.name}' успешно создан")
+            finally:
+                print("[INFO] Обработка заказа завершена")
+
+            # self.product = product
+            # self.quantity = quantity
+            # self._total_price = product.price * quantity
+            #
+            # # уменьшаем количество товара на складе
+            # self.product.quantity -= quantity
 
         def total_quantity(self) -> int:
             return self.quantity
@@ -110,3 +130,24 @@ class Category(BaseItem):
 
         def __str__(self) -> str:
             return f"Заказ: {self.product.name}, количество: {self.quantity}, сумма: {self._total_price} руб."
+
+        class Order(BaseItem):
+            def __init__(self, product: Product, quantity: int):
+                try:
+                    if quantity == 0:
+                        raise ZeroQuantityError("Нельзя заказать нулевое количество товара")
+                    if quantity > product.quantity:
+                        raise ValueError("Недостаточно товара на складе для заказа")
+
+                    self.product = product
+                    self.quantity = quantity
+                    self._total_price = product.price * quantity
+                    self.product.quantity -= quantity
+
+                except ZeroQuantityError as e:
+                    print(f"[ERROR] {e}")
+                    raise
+                else:
+                    print(f"[INFO] Заказ на товар '{product.name}' успешно создан")
+                finally:
+                    print("[INFO] Обработка заказа завершена")
