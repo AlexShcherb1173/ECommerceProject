@@ -7,13 +7,24 @@
 # test_set_price_zero_or_negative — цена не меняется, если ≤ 0, и выводится сообщение.
 # test_price_decrease_confirm_yes — при понижении цены и ответе y цена меняется.
 # test_price_decrease_confirm_no — при ответе n цена остаётся прежней и выводится предупреждение.
+# Проверяют:
+# работу CreationLoggerMixin (лог создания);
+# корректность наследования и инициализации;
+# работу свойств и сеттера цены;
+# сложение товаров (__add__);
+# поведение Product.new_product;
+# работу Category (счётчики, добавление товаров, защита приватности списка);
+# работу Order (валидация и расчёт стоимости).
+# Product — при создании товара с quantity=0 выбрасывается ZeroQuantityError.
 
-from typing import List
+
+from typing import Any, List, Type
 from unittest.mock import patch
 
 import pytest
 
-from src.product import Product
+from src.category import Category
+from src.product import LawnGrass, Product, Smartphone, ZeroQuantityError
 
 
 def test_product_valid_initialization() -> None:
@@ -235,3 +246,137 @@ def test_new_product_updates_existing(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("builtins.input", lambda _: "y")
     updated_lower = Product.new_product(data_lower_price, products)
     assert updated_lower.price == 150
+
+
+def test_add_same_type_products() -> None:
+    s1 = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    s2 = Smartphone("B", "Desc", 200, 3, 92.0, "M2", 256, "White")
+    assert s1 + s2 == 100 * 2 + 200 * 3
+
+
+def test_add_different_type_products_raises() -> None:
+    s = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    g = LawnGrass("Grass", "Desc", 50, 5, "RU", "7 дней", "Green")
+    with pytest.raises(TypeError):
+        _ = s + g
+
+
+def test_add_non_product_raises_type_error() -> None:
+    p1 = Product("Prod1", "Desc1", 10.0, 5)
+    category = Category("Cat1", "DescCat", [p1])
+
+    with pytest.raises(TypeError):
+        # Передаем не объект Product, а строку
+        category.add_product("not a product")  # type: ignore[arg-type]
+
+
+def test_add_product_or_subclass_ok() -> None:
+    c = Category("Test", "Desc", [])
+    s = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    g = LawnGrass("Grass", "Desc", 50, 5, "RU", "7 дней", "Green")
+    c.add_product(s)
+    c.add_product(g)
+    assert s in c.get_products()
+    assert g in c.get_products()
+
+
+def test_smartphone_valid_init() -> None:
+    s = Smartphone("iPhone", "Смартфон", 1000, 3, 95.5, "14 Pro", 256, "Black")
+    assert s.name == "iPhone"
+    assert s.price == 1000
+    assert s.memory == 256
+    assert s.model == "14 Pro"
+    assert isinstance(s.efficiency, float)
+
+
+@pytest.mark.parametrize(
+    "efficiency, model, memory, color, exc",
+    [
+        ("bad", "M1", 128, "Black", TypeError),  # efficiency не число
+        (95.0, 123, 128, "Black", TypeError),  # model не строка
+        (95.0, "M1", "128", "Black", TypeError),  # memory не int
+        (95.0, "M1", 128, 123, TypeError),  # color не строка
+    ],
+)
+def test_smartphone_invalid_init(
+    efficiency: float,
+    model: str,
+    memory: int,
+    color: str,
+    exc: Type[Exception],
+) -> None:
+    with pytest.raises(exc):
+        Smartphone("Test", "Desc", 1000, 1, efficiency, model, memory, color)
+
+
+def test_lawngrass_valid_init() -> None:
+    g = LawnGrass("Газон", "Трава", 50, 20, "RU", "7 дней", "Green")
+    assert g.country == "RU"
+    assert g.germination_period == "7 дней"
+    assert g.color == "Green"
+
+
+@pytest.mark.parametrize(
+    "country, germination, color, exc",
+    [
+        (123, "7 дней", "Green", TypeError),
+        ("RU", 7, "Green", TypeError),
+        ("RU", "7 дней", 123, TypeError),
+    ],
+)
+def test_lawngrass_invalid_init(
+    country: Any,
+    germination: Any,
+    color: Any,
+    exc: Type[Exception],
+) -> None:
+    with pytest.raises(exc):
+        LawnGrass("Газон", "Трава", 50, 10, country, germination, color)
+
+
+def test_smartphone_add_same_type() -> None:
+    s1 = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    s2 = Smartphone("B", "Desc", 200, 3, 92.0, "M2", 256, "White")
+    assert s1 + s2 == 100 * 2 + 200 * 3
+
+
+def test_smartphone_add_different_type_raises() -> None:
+    s = Smartphone("A", "Desc", 100, 2, 90.0, "M1", 128, "Black")
+    g = LawnGrass("Grass", "Desc", 50, 5, "RU", "7 дней", "Green")
+    with pytest.raises(TypeError):
+        _ = s + g
+
+
+def test_lawngrass_add_same_type() -> None:
+    g1 = LawnGrass("Газон1", "Desc", 50, 10, "RU", "7 дней", "Green")
+    g2 = LawnGrass("Газон2", "Desc", 100, 5, "RU", "10 дней", "Dark Green")
+    assert g1 + g2 == 50 * 10 + 100 * 5
+
+
+def test_lawngrass_add_different_type_raises() -> None:
+    g = LawnGrass("Газон", "Desc", 50, 5, "RU", "7 дней", "Green")
+    p = Product("Prod", "Desc", 20, 2)
+    with pytest.raises(TypeError):
+        _ = g + p
+
+
+def test_product_with_zero_quantity_raises() -> None:
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product("Test", "Desc", 100, 0)
+
+
+def test_product_with_negative_quantity_raises() -> None:
+    with pytest.raises(ValueError, match="quantity не может быть отрицательным"):
+        Product("Test", "Desc", 100, -5)
+
+
+def test_product_with_positive_quantity_ok() -> None:
+    product = Product("Test", "Desc", 100, 5)
+    assert product.quantity == 5
+    assert product.price == 100
+    assert str(product) == "Test, 100.0 руб. Остаток: 5 шт."
+
+
+def test_product_zero_quantity_raises() -> None:
+    with pytest.raises(ZeroQuantityError, match="Нельзя создать продукт с нулевым количеством"):
+        Product("Test", "Desc", 100, 0)

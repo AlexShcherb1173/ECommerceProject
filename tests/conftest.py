@@ -1,5 +1,7 @@
 import pytest
+
 from src.category import Category
+
 
 @pytest.fixture(autouse=True)
 def reset_category_counters() -> None:
